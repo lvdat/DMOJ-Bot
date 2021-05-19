@@ -53,7 +53,7 @@ GRAPH_RANK_COLOURS = {
 }
 
 RANKS = [
-    'Unrated',
+    'Unranked',
     'Newbie',
     'Amateur',
     'Expert',

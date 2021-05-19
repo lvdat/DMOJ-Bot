@@ -53,6 +53,9 @@ class Handles(commands.Cog):
             .filter(Handle_DB.guild_id == ctx.guild.id).first()
         session.delete(handle)
         session.commit()
+        verified_role = ctx.guild.get_role(678774843415461968)
+        if verified_role is not None:
+            await ctx.author.remove_roles(verified_role, reason='Unverified user')
         await ctx.send(f'Unlinked you with handle {handle.handle}')
 
     @commands.command(usage='dmoj_handle')
@@ -94,6 +97,10 @@ class Handles(commands.Cog):
         handle.guild_id = ctx.guild.id
         session.add(handle)
         session.commit()
+        verified_role = ctx.guild.get_role(678774843415461968)
+        if verified_role is not None:
+            await ctx.author.add_roles(verified_role, reason=f'Verified user as {username}')
+        await ctx.author.edit(nick=username, reason=f'Verified user as {username}')
         await ctx.send(
             "%s, you now have linked your account to %s." %
             (ctx.author.name, username)
@@ -102,14 +109,13 @@ class Handles(commands.Cog):
         rank_to_role = {role.name: role for role in ctx.guild.roles if role.name in RANKS}
         rank = self.rating_to_rank(user.rating)
         if rank in rank_to_role:
-            await self._update_rank(ctx.author, rank_to_role[rank], 'Dmoj account linked')
+            await self._update_rank(ctx.author, rank_to_role[rank], f'Verified user as {username}')
         else:
             await ctx.send("You are missing the " + rank.name + " role")
 
     @commands.command(name='set', usage='discord_account [dmoj_handle, +remove]')
-    @commands.has_role('Admin')
+    @commands.has_any_role('DMOJ Staff', 'Admin', 'Kirito', 'yes', 'Me')
     async def _set(self, ctx, member, username: str):
-
         """Manually link two accounts together"""
         query = Query()
         member = await query.parseUser(ctx, member)
@@ -214,7 +220,7 @@ class Handles(commands.Cog):
             await member.add_roles(rank, reason=reason)
 
     @commands.command()
-    @commands.has_role('Admin')
+    @commands.has_any_role('DMOJ Staff', 'Admin', 'Kirito', 'yes', 'Me')
     async def update_roles(self, ctx):
         """Manually update roles"""
         # Big problem, I stored rankings column in Contest table as Json instead of using foreign keys to participation
@@ -245,7 +251,7 @@ class Handles(commands.Cog):
 
         await msg.edit(content="Updating roles...")
 
-        missing_roles = []
+        missing_roles = set()
         try:
             for member, user in zip(members, list(new_ratings.keys())):
                 if member is None:
@@ -253,9 +259,9 @@ class Handles(commands.Cog):
 
                 rank = self.rating_to_rank(new_ratings[user])
                 if rank in rank_to_role:
-                    await self._update_rank(member, rank_to_role[rank], 'Dmoj rank update')
+                    await self._update_rank(member, rank_to_role[rank], 'Update DMOJ rating role')
                 elif rank not in missing_roles:
-                    missing_roles.append(rank)
+                    missing_roles.add(rank)
         except Exception as e:
             await ctx.send("An error occurred. " + str(e))
             return

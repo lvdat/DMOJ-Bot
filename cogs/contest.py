@@ -210,8 +210,6 @@ class Contest(commands.Cog):
     async def postcontest(self, ctx, key, option):
         """Updates post-contest role"""
 
-        await ctx.message.delete()
-
         role = get(ctx.guild.roles, name="Admin")
 
         update_all = option == '+all' and role in ctx.author.roles
