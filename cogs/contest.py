@@ -211,7 +211,6 @@ class Contest(commands.Cog):
         """Updates post-contest role"""
 
         role = get(ctx.guild.roles, name="Admin")
-
         update_all = option == '+all' and role in ctx.author.roles
 
         query = Query()

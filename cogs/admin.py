@@ -16,6 +16,15 @@ class Admin(commands.Cog):
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
 
+    @commands.Cog.listener()
+    async def on_member_remove(self, ctx, *, member):
+        q = session.query(Handle_DB)\
+            .filter(Handle_DB.id == ctx.author.id)\
+            .filter(Handle_DB.guild_id == ctx.guild.id)
+        if q.count():
+            q.delete()
+            session.commit()
+
     @commands.command()
     async def reload_all(self, ctx):
         """Reload a module"""
