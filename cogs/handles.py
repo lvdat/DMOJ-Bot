@@ -1,12 +1,11 @@
+from utils.api import ObjectNotFound
 from utils.jomd_common import scroll_embed
 from operator import itemgetter
 from discord.ext import commands
 import discord
 from utils.query import Query
 from utils.db import session, User as User_DB, Handle as Handle_DB, Contest as Contest_DB
-from utils.constants import RATING_TO_RANKS, RANKS
-# import html
-# import random
+from utils.constants import RATING_TO_RANKS, RANKS, ADMIN_ROLE
 import typing
 import asyncio
 import hashlib
@@ -19,31 +18,55 @@ class Handles(commands.Cog):
     @commands.command()
     async def whois(self, ctx, member: typing.Optional[discord.Member] = None,
                     handle: typing.Optional[str] = None):
-        # TODO: Use embeds and pfps
+
         query = Query()
+        username, linked_username, pfp = None, None, None
         if handle:
-            user = await query.get_user(handle)
-            handle = user.username
-            author_id = query.get_handle_user(handle, ctx.guild.id)
-            if author_id:
-                # member = await self.bot.fetch_user(author_id)
-                name = ctx.message.guild.get_member(author_id)
-                await ctx.send(f'`{handle}` is `{name.nick or name.name}`')
-            else:
-                await ctx.send(f'`{handle}` is not linked with any account here...')
+            user = None
+            try:
+                user = await query.get_user(handle)
+            except ObjectNotFound:
+                username = None
+            if user:
+                handle = user.username
+                author_id = query.get_handle_user(handle, ctx.guild.id)
+                username = handle
+                if author_id:
+                    member = ctx.message.guild.get_member(author_id)
+                    linked_username = member.nick or member.name
+                    pfp = member.avatar_url
         elif member:
             handle = query.get_handle(member.id, ctx.guild.id)
+            username = member.nick or member.name
             if handle:
-                await ctx.send(f'`{member.nick or member.name}` is `{handle}`')
-            else:
-                await ctx.send(f'`{member.nick or member.name}` is not linked with any account here')
+                linked_username = handle
+                pfp = await query.get_pfp(handle)
+        if linked_username:
+            embed = discord.Embed(
+                color=0xfcdb05,
+                title=f'{username} is {linked_username}',
+            )
+            embed.set_thumbnail(url=pfp)
+            await ctx.send(embed=embed)
+        elif username:
+            embed = discord.Embed(
+                title=f'{username} is not linked with any account here',
+                color=0xfcdb05,
+            )
+            await ctx.send(embed=embed)
         else:
-            # wtf
-            pass
+            name = None
+            if member:
+                name = member.nick or member.name
+            embed = discord.Embed(
+                title=f'Nothing found on {handle or name}',
+                color=0xfcdb05,
+            )
+            await ctx.send(embed=embed)
 
     @commands.command()
     async def unlink(self, ctx):
-        """Unlink your discord account with your dmoj account"""
+        '''Unlink your discord account with your dmoj account'''
         query = Query()
         if not query.get_handle(ctx.author.id, ctx.guild.id):
             await ctx.send('You are not linked with any user')
@@ -60,13 +83,13 @@ class Handles(commands.Cog):
 
     @commands.command(usage='dmoj_handle')
     async def link(self, ctx, username: str):
-        """Links your discord account to your dmoj account"""
+        '''Links your discord account to your dmoj account'''
         # Check if user exists
         query = Query()
         user = await query.get_user(username)
 
         if user is None:
-            await ctx.send(f"{username} does not exist on DMOJ")
+            await ctx.send(f'{username} does not exist on DMOJ')
             return
 
         username = user.username
@@ -87,7 +110,8 @@ class Handles(commands.Cog):
         description = await query.get_user_description(username)
         userKey = hashlib.sha256(str(ctx.author.id).encode()).hexdigest()
         if userKey not in description:
-            await ctx.send('Put `' + userKey + '` in your DMOJ user description and run the command again.')
+            await ctx.send('Put `' + userKey + '` in your DMOJ user description (https://dmoj.ca/edit/profile/) '
+                           'and run the command again.')
             return
 
         handle = Handle_DB()
@@ -102,7 +126,7 @@ class Handles(commands.Cog):
             await ctx.author.add_roles(verified_role, reason=f'Verified user as {username}')
         await ctx.author.edit(nick=username, reason=f'Verified user as {username}')
         await ctx.send(
-            "%s, you now have linked your account to %s." %
+            '%s, you now have linked your account to %s' %
             (ctx.author.name, username)
         )
 
@@ -111,16 +135,16 @@ class Handles(commands.Cog):
         if rank in rank_to_role:
             await self._update_rank(ctx.author, rank_to_role[rank], f'Verified user as {username}')
         else:
-            await ctx.send("You are missing the " + rank.name + " role")
+            await ctx.send('You are missing the ' + rank.name + ' role')
 
     @commands.command(name='set', usage='discord_account [dmoj_handle, +remove]')
     @commands.has_any_role('DMOJ Staff', 'Admin', 'Kirito', 'yes', 'Me')
     async def _set(self, ctx, member, username: str):
-        """Manually link two accounts together"""
+        '''Manually link two accounts together'''
         query = Query()
         member = await query.parseUser(ctx, member)
 
-        if username != "+remove":
+        if username != '+remove':
             user = await query.get_user(username)
 
             if user is None:
@@ -141,7 +165,7 @@ class Handles(commands.Cog):
             session.commit()
             await ctx.send(f'Unlinked {member.display_name} with handle {handle.handle}')
 
-        if username == "+remove":
+        if username == '+remove':
             return
 
         if query.get_handle_user(username, ctx.guild.id):
@@ -155,50 +179,50 @@ class Handles(commands.Cog):
         handle.guild_id = ctx.guild.id
         session.add(handle)
         session.commit()
-        await ctx.send(f"Linked {member.name} with {username}.")
+        await ctx.send(f'Linked {member.name} with {username}')
 
         rank_to_role = {role.name: role for role in ctx.guild.roles if role.name in RANKS}
         rank = self.rating_to_rank(user.rating)
         if rank in rank_to_role:
             await self._update_rank(ctx.author, rank_to_role[rank], 'Dmoj account linked')
         else:
-            await ctx.send("You are missing the " + rank.name + " role")
+            await ctx.send('You are missing the ' + rank.name + ' role')
 
     @commands.command(aliases=['users', 'leaderboard'], usage='[rating|maxrating|points|solved]')
-    async def top(self, ctx, arg="rating"):
-        """Shows registered server members in ranked order"""
+    async def top(self, ctx, arg='rating'):
+        '''Shows registered server members in ranked order'''
         arg = arg.lower()
-        if arg != "rating" and arg != "maxrating" and arg != "points" and arg != "solved":
+        if arg != 'rating' and arg != 'maxrating' and arg != 'points' and arg != 'solved':
             return await ctx.send_help('top')
         users = session.query(User_DB).join(Handle_DB, Handle_DB.handle == User_DB.username)\
             .filter(Handle_DB.guild_id == ctx.guild.id)
         leaderboard = []
         for user in users:
-            if arg == "rating":
-                leaderboard.append([-user.rating, user.username])
-            elif arg == "maxrating":
-                leaderboard.append([-user.max_rating, user.username])
-            elif arg == "points":
+            if arg == 'rating':
+                leaderboard.append([-(user.rating or -9999), user.username])
+            elif arg == 'maxrating':
+                leaderboard.append([-(user.max_rating or -9999), user.username])
+            elif arg == 'points':
                 leaderboard.append([-user.performance_points, user.username])
-            elif arg == "solved":
-                if user.problem_count is None:
-                    leaderboard.append([1, user.username])
-                else:
-                    leaderboard.append([-user.problem_count, user.username])
+            elif arg == 'solved':
+                leaderboard.append([-(user.problem_count or 0), user.username])
         leaderboard.sort()
         content = []
-        page = ""
+        page = ''
         for i, user in enumerate(leaderboard):
-            page += f"{i+1} {user[1]} {-round(user[0],3)}\n"
+            if (arg == 'rating' or arg == 'maxrating') and user[0] == 9999:
+                page += f'{i+1} {user[1]} unrated\n'
+            else:
+                page += f'{i+1} {user[1]} {-round(user[0],3)}\n'
             if i % 10 == 9:
                 content.append(page)
-                page = ""
-        if page != "":
+                page = ''
+        if page != '':
             content.append(page)
         if len(content) == 0:
-            content.append("No users")
-        message = await ctx.send(embed=discord.Embed().add_field(name="Top DMOJ " + arg, value=content[0]))
-        await scroll_embed(ctx, self.bot, message, "Top DMOJ " + arg, content)
+            content.append('No users')
+        message = await ctx.send(embed=discord.Embed().add_field(name='Top DMOJ ' + arg, value=content[0]))
+        await scroll_embed(ctx, self.bot, message, 'Top DMOJ ' + arg, content)
 
     def rating_to_rank(self, rating):
         if rating is None:
@@ -222,7 +246,7 @@ class Handles(commands.Cog):
     @commands.command()
     @commands.has_any_role('DMOJ Staff', 'Admin', 'Kirito', 'yes', 'Me')
     async def update_roles(self, ctx):
-        """Manually update roles"""
+        '''Manually update roles'''
         # Big problem, I stored rankings column in Contest table as Json instead of using foreign keys to participation
         # TODO: Migrate to work with participation table
 
@@ -249,7 +273,7 @@ class Handles(commands.Cog):
 
         rank_to_role = {role.name: role for role in ctx.guild.roles if role.name in RANKS}
 
-        await msg.edit(content="Updating roles...")
+        await msg.edit(content='Updating roles...')
 
         missing_roles = set()
         try:
@@ -263,12 +287,12 @@ class Handles(commands.Cog):
                 elif rank not in missing_roles:
                     missing_roles.add(rank)
         except Exception as e:
-            await ctx.send("An error occurred. " + str(e))
+            await ctx.send('An error occurred. ' + str(e))
             return
 
         if len(missing_roles) != 0:
-            await ctx.send("You are missing the " + ", ".join(missing_roles) + " roles")
-        await msg.edit(content="Roles updated")
+            await ctx.send('You are missing the ' + ', '.join(missing_roles) + ' roles')
+        await msg.edit(content='Roles updated')
 
 
 def setup(bot):
