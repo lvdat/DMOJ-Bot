@@ -1,5 +1,5 @@
 from utils.jomd_common import scroll_message
-from utils.constants import SITE_URL, TZ, ADMIN_ROLE
+from utils.constants import SITE_URL, TZ, ADMIN_ROLES
 from utils.db import (session, Problem as Problem_DB,
                       Contest as Contest_DB,
                       Participation as Participation_DB,
@@ -211,7 +211,15 @@ class Contest(commands.Cog):
     @commands.command(aliases=['pc'], usage='[contest key]')
     async def postcontest(self, ctx, key, option=''):
         '''Updates post-contest role'''
-        update_all = False
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            pass
+
+        def has_admin_perms(ctx):
+            return any(get(ctx.guild.roles, name=role) in ctx.author.roles for role in ADMIN_ROLES)
+
+        update_all = option == '+all' and has_admin_perms(ctx)
 
         query = Query()
 
