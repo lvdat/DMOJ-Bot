@@ -4,6 +4,7 @@ from pathlib import Path
 from utils.db import (session, Contest as Contest_DB,
                       Problem as Problem_DB, Submission as Submission_DB)
 from utils.query import Query
+from utils.constants import ADMIN_ROLES
 from operator import itemgetter
 import time
 import logging
@@ -15,7 +16,7 @@ class Admin(commands.Cog):
         self.bot = bot
 
     async def cog_check(self, ctx):
-        return await self.bot.is_owner(ctx.author)
+        return any(get(ctx.guild.roles, name=role) in ctx.author.roles for role in ADMIN_ROLES)
 
     @commands.Cog.listener()
     async def on_member_remove(self, ctx, *, member):
