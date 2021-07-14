@@ -1,5 +1,6 @@
 from utils.api import ObjectNotFound
 from discord.ext import commands
+from discord.utils import get
 from pathlib import Path
 from utils.db import (session, Contest as Contest_DB,
                       Problem as Problem_DB, Submission as Submission_DB)
