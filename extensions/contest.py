@@ -56,6 +56,9 @@ async def ranklist(ctx):
         await ctx.respond("Contest not found")
         return
 
+    if datetime.utcnow() < contest.start_time:
+        return await ctx.respond('Contest not found')
+
     if contest.hidden_scoreboard and contest.end_time > datetime.utcnow():
         return await ctx.respond("Contest ongoing")
 
@@ -85,6 +88,7 @@ async def ranklist(ctx):
     import requests
 
     r = requests.get(f"https://evanzhang.ca/rating/contest/{key}/api")
+    rankings = []
     if r:
         rankings = r.json()["users"]
 

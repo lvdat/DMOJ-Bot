@@ -100,7 +100,7 @@ async def gitgud(ctx: lightbulb.Context) -> None:
     filter_list = []
     for filter in filters:
         if filter in SHORTHANDS:
-            filter_list.append(SHORTHANDS[filter])
+            filter_list += SHORTHANDS[filter]
 
     filters = filter_list
 
