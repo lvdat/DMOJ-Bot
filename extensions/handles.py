@@ -204,7 +204,7 @@ async def link(ctx: lightbulb.Context) -> None:
     rank = rating_to_rank(user.rating)
     # TODO Add guild specific option to disable updating roles
     if rank in rank_to_role:
-        await _update_rank(ctx.member, rank_to_role[rank], "Verified user as {username}")
+        await _update_rank(ctx.member, rank_to_role[rank], f"Verified user as {username}")
     else:
         await ctx.respond("You are missing the `" + rank + "` role")
 
