@@ -176,7 +176,7 @@ async def link(ctx: lightbulb.Context) -> None:
     userKey = hashlib.sha256(str(ctx.author.id).encode()).hexdigest()
     if userKey not in description:
         await ctx.respond(
-            "Put `" + userKey + "` in your DMOJ user description (https://dmoj.ca/edit/profile/) "
+            "Put `" + userKey + "` in your DMOJ user description (https://dmoj.ctu.edu.vn/edit/profile/) "
             "and run the command again."
         )
         return

@@ -80,7 +80,7 @@ async def user(ctx):
     description = "Calculated points: %.2f" % user.performance_points
     embed = hikari.Embed(
         title=username,
-        url=f"https://dmoj.ca/user/{username}",
+        url=f"https://dmoj.ctu.edu.vn/user/{username}",
         description=description,
         color=0xFCDB05,
     )
@@ -121,7 +121,7 @@ async def user(ctx):
 
         embed.add_field(
             name="%s (%s)" % (submission.problem[0].name, points),
-            value="%s | [Problem](https://dmoj.ca/problem/%s)"
+            value="%s | [Problem](https://dmoj.ctu.edu.vn/problem/%s)"
             % (
                 submission.date.astimezone(TZ)
                 .strftime("%b. %d, %Y, %I:%M %p")
@@ -218,7 +218,7 @@ async def userinfo(ctx):
     description = f"Discord name: {discordHandle}"
     embed = hikari.Embed(
         title=username,
-        url=f"https://dmoj.ca/user/{username}",
+        url=f"https://dmoj.ctu.edu.vn/user/{username}",
         description=description,
         color=color,  # rating color
     )
@@ -261,7 +261,7 @@ async def userinfo(ctx):
 
         embed.add_field(
             name="%s (%s)" % (submission.problem[0].name, points),
-            value="%s | [Problem](https://dmoj.ca/problem/%s)"
+            value="%s | [Problem](https://dmoj.ctu.edu.vn/problem/%s)"
             % (
                 submission.date.astimezone(TZ)
                 .strftime("%b. %d, %Y, %I:%M %p")
@@ -450,7 +450,7 @@ async def vc(ctx):
         is_rated = "Rated"
     embed = hikari.Embed(
         title=contest.name,
-        url=f"https://dmoj.ca/contest/{contest.key}",
+        url=f"https://dmoj.ctu.edu.vn/contest/{contest.key}",
         description=f"{window} window | {len(contest.problems)} Problems | {is_rated}",
         color=0xFCDB05,
     )

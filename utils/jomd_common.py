@@ -96,7 +96,7 @@ async def gimme_common(username, points, types):
 
     embed = hikari.Embed(
         title=problem.name,
-        url="https://dmoj.ca/problem/%s" % problem.code,
+        url="https://dmoj.ctu.edu.vn/problem/%s" % problem.code,
         description="Points: %s\nProblem Types: %s" % (points, ", ".join(problem.types)),
         color=0xFCDB05,
     )
