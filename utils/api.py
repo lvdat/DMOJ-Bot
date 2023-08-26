@@ -129,9 +129,9 @@ async def _query_api(url, resp_obj):
         logger.info("Calling %s", url)
         if _session is None:
             if API_TOKEN is None:
-                _session = aiohttp.ClientSession()
+                _session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
             else:
-                _session = aiohttp.ClientSession(headers={"Authorization": "Bearer " + API_TOKEN})
+                _session = aiohttp.ClientSession(headers={"Authorization": "Bearer " + API_TOKEN}, connector=aiohttp.TCPConnector(verify_ssl=False))
         async with _session.get(url) as resp:
             if resp_obj == "text":
                 resp = await resp.text()
