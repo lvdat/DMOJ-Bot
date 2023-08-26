@@ -92,7 +92,7 @@ async def gitgud(ctx: lightbulb.Context) -> None:
             embed = hikari.Embed(
                 description=f"You currently have an uncompleted "
                 f"challenge, [{problem.name}]"
-                f"(https://dmoj.ca/problem/{problem.code})",
+                f"(https://dmoj.ctu.edu.vn/problem/{problem.code})",
                 color=0xFCDB05,
             )
             return await ctx.respond(embed=embed)
@@ -177,7 +177,7 @@ async def gitlog(ctx):
             days_str = "yesterday"
         else:
             days_str = f"{days} days ago"
-        pag.add_line(f"[{problem.name}](https://dmoj.ca/problem/{problem.code}) " f"[+{solved.point}] ({days_str})")
+        pag.add_line(f"[{problem.name}](https://dmoj.ctu.edu.vn/problem/{problem.code}) " f"[+{solved.point}] ({days_str})")
         if idx == 100:
             break
 
