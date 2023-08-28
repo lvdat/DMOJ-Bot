@@ -135,7 +135,7 @@ async def unlink(ctx: lightbulb.Context) -> None:
     session.query(Submission_DB).filter(Submission_DB._user == handle.handle).delete()
     session.delete(handle)
     session.commit()
-    verified_role = ctx.guild.get_role(678774843415461968)
+    verified_role = ctx.guild.get_role(VERIFIED_ROLE_ID)
     if verified_role is not None:
         await ctx.member.remove_role(verified_role, reason='Unverified user')
     await ctx.respond(escape_markdown(f"Unlinked you with handle {handle.handle}"))
