@@ -3,11 +3,12 @@ import datetime
 import pytz
 
 API_TOKEN = os.environ.get("JOMD_TOKEN", None)
+VERIFIED_ROLE_ID = os.environ.get("VERIFIED_ROLE_ID", None)
 # Has no use, URI located at db.py
 DB_DIR = "utils/db/JOMD.db"
 SITE_URL = "https://dmoj.ctu.edu.vn/"
 DEBUG_DB = False
-ADMIN_ROLES = ['DMOJ Staff', 'Admin', 'Kirito', 'yes', 'Me', 'DMOJ Staff in Training']
+ADMIN_ROLES = ['DMOJ Staff', 'Admin', 'DMOJ Staff in Training']
 # Time zone
 # why does it not work??? asdlsadkl
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
