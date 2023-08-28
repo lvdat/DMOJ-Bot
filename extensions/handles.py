@@ -3,7 +3,7 @@ from utils.api import ObjectNotFound
 from operator import itemgetter
 from utils.query import Query
 from utils.db import session, User as User_DB, Handle as Handle_DB, Contest as Contest_DB, Submission as Submission_DB
-from utils.constants import RATING_TO_RANKS, RANKS, ADMIN_ROLES
+from utils.constants import RATING_TO_RANKS, RANKS, ADMIN_ROLES, VERIFIED_ROLE_ID
 from lightbulb.utils import nav
 import typing as t
 import asyncio
@@ -176,8 +176,8 @@ async def link(ctx: lightbulb.Context) -> None:
     userKey = hashlib.sha256(str(ctx.author.id).encode()).hexdigest()
     if userKey not in description:
         await ctx.respond(
-            "Put `" + userKey + "` in your DMOJ user description (https://dmoj.ctu.edu.vn/edit/profile/) "
-            "and run the command again."
+            "Chèn chuỗi `" + userKey + "` trong description của bạn tại (https://dmoj.ctu.edu.vn/edit/profile/) "
+            "và chạy lại lệnh này."
         )
         return
 
@@ -188,11 +188,11 @@ async def link(ctx: lightbulb.Context) -> None:
     handle.guild_id = ctx.get_guild().id
     session.add(handle)
     session.commit()
-    verified_role = ctx.guild.get_role(678774843415461968)
+    verified_role = ctx.guild.get_role(VERIFIED_ROLE_ID)
     if verified_role is not None:
         await ctx.member.add_role(verified_role, reason=f'Verified user as {username}')
     await ctx.member.edit(nick=username, reason=f'Verified user as {username}')
-    await ctx.respond(escape_markdown("%s, you now have linked your account to %s" % (ctx.author, username)))
+    await ctx.respond(escape_markdown("%s, bạn đã liên kết thành công với tài khoản %s" % (ctx.author, username)))
 
     rank_to_role = {}
     rc = lightbulb.RoleConverter(ctx)
